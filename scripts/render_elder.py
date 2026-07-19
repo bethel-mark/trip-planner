@@ -210,7 +210,7 @@ def render_day(data):
     # 页面指示移到右上角(避开内容区,且和顶部 page_index 编号一致)
     paste_text(img, W-200, 80, f"第 {day_num} 天", 32, COLOR_TEXT_SOFT, "bold")
 
-    fname = f"{day_num+1:02d}_day{day_num}.png"
+    fname = f"{data.get('page_index', day_num+1):02d}_day{day_num}.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
 
 # ---------- 应急联系页 ----------

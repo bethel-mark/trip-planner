@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg-info/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Output
+output/
+out/
+*.log
+.env
+.env.local
+
+# Generated content
+trip_*/output/
+trip_*/.DS_Store

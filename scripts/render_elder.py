@@ -207,7 +207,8 @@ def render_day(data):
         cur_y += 70
 
     # 底部
-    paste_text(img, 100, H-80, f"第 {day_num} 天", 32, COLOR_TEXT_SOFT, "bold")
+    # 页面指示移到右上角(避开内容区,且和顶部 page_index 编号一致)
+    paste_text(img, W-200, 80, f"第 {day_num} 天", 32, COLOR_TEXT_SOFT, "bold")
 
     fname = f"{day_num+1:02d}_day{day_num}.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
@@ -233,18 +234,13 @@ def render_emergency(data):
     cur_y = 280
     for c in data.get("contacts", [])[:5]:
         paste_text(img, 100, cur_y, c.get("label", ""), 30, COLOR_TEXT_SOFT, "regular")
-        cur_y += 40
+        cur_y += 50  # 标签和号码之间加大间距(原 40)
         paste_text(img, 100, cur_y, c.get("number", ""), 50, COLOR_TEXT, "bold")
-        cur_y += 30
-        # 橙色高亮条
-        ov = Image.new('RGBA', img.size, (0,0,0,0))
-        od = ImageDraw.Draw(ov)
-        od.rectangle([100, cur_y, W-100, cur_y+4], fill=COLOR_HIGHLIGHT)
-        img.alpha_composite(ov)
-        cur_y += 50
+        cur_y += 40  # 号码和下一项之间也加大(原 30)
+        cur_y += 60  # 增加间距(原为 50),不画黄色干扰条
 
-    # 底部提醒
-    paste_text(img, 100, H-100, "📱 长按此页可放大看 · 收藏到手机", 28, COLOR_TEXT_SOFT, "regular")
+    # 底部提醒(居中,避开大数字)
+    paste_text(img, (W-720)//2, H-100, "📱 长按此页可放大看 · 收藏到手机", 28, COLOR_TEXT_SOFT, "regular")
 
     fname = "08_emergency.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)

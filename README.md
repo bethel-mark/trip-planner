@@ -62,15 +62,28 @@ ln -s /path/to/trip-planner-github \
 
 ---
 
-## 🎬 效果预览(3:4 故事卡)
+## 🎬 效果预览
 
-下面是 Ipoh → 四川宜宾 5 天 4 夜的实测产出(完整 7 张故事卡):
+### 玻璃拟态 3:4 故事卡(年轻人 / 小红书 / 朋友圈)
 
 | Day 1 出发 | Day 3 蜀南竹海 | 🆘 应急联系 |
 |:---:|:---:|:---:|
 | ![](screenshots/02_day1.png) | ![](screenshots/04_day3.png) | ![](screenshots/07_back.png) |
 
 (完整 7 张见 `screenshots/` 目录)
+
+### 老人大字版(长辈 / 视障 / 朗读)
+
+| 封面 | Day 1 |
+|:---:|:---:|
+| ![](screenshots/elder_01_cover.png) | ![](screenshots/elder_02_day1.png) |
+
+- 标题 80pt,正文 36pt
+- 米白底 + 砖红强调,高对比
+- 一页一重点,无装饰干扰
+- 朗读友好(适合 TTS / 屏幕朗读)
+
+完整 8 张见 `examples/` 或自己跑 `python scripts/render_elder.py trip.json outdir`
 
 ---
 

@@ -1,3 +1,4 @@
+import sys, os, json
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """玻璃拟态 + 等距 3D + Soft 3D UI · 手机长截图版
@@ -12,7 +13,8 @@ from io import BytesIO
 import os
 
 W = 1080
-OUT = "/Users/a1234/Documents/UZI/00-archive/05-IOPH-JLP/itinerary_images/itinerary_long.png"
+OUT_DIR = sys.argv[2] if len(sys.argv) > 2 else "."
+OUT_FILE = sys.argv[3] if len(sys.argv) > 3 else None  # 可选,指定文件名
 
 # ---------- Color helpers ----------
 def rgb(r,g,b): return (r,g,b,255)
@@ -627,8 +629,11 @@ def main():
                     border=(255,210,140,220), border_w=2, radius=18)
     paste_text(img, W//2 - 240, FOOTER_Y + 13, "💾 长按保存 / 转发给同行人", 22, (255,255,255))
 
-    img.convert('RGB').save(OUT, 'PNG', optimize=True)
-    print(f"Saved: {OUT}  ({os.path.getsize(OUT)//1024} KB)")
+        # 输出路径(优先 OUT_FILE,否则 OUT_DIR/itinerary_long.png)
+    out_path = OUT_FILE if OUT_FILE else os.path.join(OUT_DIR, "itinerary_long.png")
+    os.makedirs(OUT_DIR, exist_ok=True)
+    img.convert('RGB').save(out_path, 'PNG', optimize=True)
+    print(f"Saved: {out_path}  ({os.path.getsize(out_path)//1024} KB)")
     print(f"Size: {W}x{H}")
 
 if __name__ == "__main__":

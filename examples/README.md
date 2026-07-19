@@ -1,37 +1,54 @@
 # 示例 · Ipoh → 宜宾 5 天 4 夜
 
-完整的示例数据 + 产出。
+完整示例数据 + 两种产出风格。
 
 ## 文件
 
 | 文件 | 用途 |
 |---|---|
-| `trip-yibin-5day.json` | 完整行程 JSON 配置(7 页内容) |
-| `README.md` | 行程说明 + 重跑命令 |
+| `trip-yibin-5day.json` | 完整行程 JSON(5 天 4 夜,6 页) |
+| `README.md` | 本说明 |
 
-## 复跑方法
+## 3 种产出模式
+
+### 模式 1:3:4 故事卡(玻璃拟态,默认)
 
 ```bash
 PY=/Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+$PY ../scripts/render_story.py trip-yibin-5day.json /tmp/yibin-story
+ls /tmp/yibin-story/
+# 01_cover.png  02_day1.png  ...  07_back.png
+```
 
-# 1. 复制 JSON 到 /tmp
-cp /Users/a1234/Documents/UZI/00-archive/05-IOPH-JLP/trip-planner-skill/examples/trip-yibin-5day.json /tmp/
+### 模式 2:老人大字版(长辈 / 视障 / 朗读)
 
-# 2. 改目的地/日期/事件后,跑:
-$PY /Users/a1234/Documents/UZI/00-archive/05-IOPH-JLP/trip-planner-skill/scripts/render_story.py \
-  /tmp/trip-yibin-5day.json \
-  /path/to/output
+```bash
+$PY ../scripts/render_elder.py trip-yibin-5day.json /tmp/yibin-elder
+ls /tmp/yibin-elder/
+# 01_cover.png  02_day1.png  ...  08_emergency.png
+```
+
+- 标题 80pt,正文 36pt
+- 米白底 + 砖红强调,高对比
+- 一页一重点,无装饰干扰
+
+### 模式 3:单张长截图(桌面 / 投影)
+
+```bash
+$PY ../scripts/render_mobile.py trip-yibin-5day.json /tmp/yibin-long
+ls /tmp/yibin-long/
+# itinerary_long.png
 ```
 
 ## JSON 结构
 
 ```json
 {
-  "cover":  { ... },        // 封面配置
-  "pages":  [ ... ],        // 每页配置(每个 day 一页)
-  "essentials": { ... },    // (未在 render_story.py 实现,可扩展)
-  "cost":   { ... },        // (未在 render_story.py 实现,可扩展)
-  "back":   { ... }         // 应急联系配置
+  "cover":  { "title": "...", "subtitle": "...", "hero_emoji": "..." },
+  "pages":  [ { "day": 1, "day_title": "...", "events": [...], "tips": [...] } ],
+  "essentials": { "categories": [ {"name":"...", "items":[...]} ] },
+  "cost":   { "total": "...", "items": [...] },
+  "back":   { "title": "...", "contacts": [...] }
 }
 ```
 
@@ -43,5 +60,6 @@ $PY /Users/a1234/Documents/UZI/00-archive/05-IOPH-JLP/trip-planner-skill/scripts
 - `teal`(青绿)
 - `lavender`(薰衣草)
 - `warm`(暖橙)
+- `macaron`(马卡龙)
 
 每页可单独覆盖 `pages[i].color = [R, G, B]` 自定义。

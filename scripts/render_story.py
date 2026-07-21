@@ -437,6 +437,72 @@ def render_cost(data):
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
     return img
 
+
+# ============= PAGE: SOUVENIRS =============
+def render_souvenirs(data):
+    img = Image.new('RGBA', (W, H), (0,0,0,255))
+    draw_background(img, "warm")
+    glow(img, 200, 250, 250, (255,180,100), alpha=120, blur=90)
+    glow(img, W-200, 500, 280, (200,80,200), alpha=100, blur=100)
+
+    page_n = f"{data['page_index']:02d} / {data['total_pages']:02d}"
+    glass_card_for_text(img, page_n, 16, 30, left_x=W-130, fill=(255,255,255), alpha=40, border=(255,255,255,150), pad_x=14, pad_y=6)
+
+    paste_text(img, 60, 100, data.get("title", "🎁 回程必带"), 44, (255,255,255))
+    paste_text(img, 60, 165, data.get("subtitle", ""), 20, (255,220,180))
+
+    items = data.get("items", [])[:8]
+    col_w = (W - 60*2 - 30) // 2
+    for i, item in enumerate(items):
+        col = i % 2
+        row = i // 2
+        x = 60 + col * (col_w + 30)
+        y = 240 + row * 165
+        draw_glass_card(img, x, y, col_w, 140, fill=(255,255,255), alpha=20, border=(255,255,255,80), radius=18)
+        paste_emoji(img, x+45, y+35, item.get("icon", "🎁"), 36)
+        paste_text(img, x+90, y+12, item.get("name", "")[:14], 18, (255,255,255))
+        paste_text(img, x+90, y+40, item.get("desc", "")[:22], 13, (210,200,190))
+        price = item.get("price", "")
+        paste_text(img, x+90, y+60, price, 16, (255,200,100))
+
+    fname = f"{data['page_index']:02d}_souvenirs.png"
+    img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
+    return img
+
+# ============= PAGE: APPS =============
+def render_apps(data):
+    img = Image.new('RGBA', (W, H), (0,0,0,255))
+    draw_background(img, "teal")
+    glow(img, 200, 250, 250, (80,200,180), alpha=120, blur=90)
+    glow(img, W-200, 600, 250, (200,80,200), alpha=100, blur=100)
+
+    page_n = f"{data['page_index']:02d} / {data['total_pages']:02d}"
+    glass_card_for_text(img, page_n, 16, 30, left_x=W-130, fill=(255,255,255), alpha=40, border=(255,255,255,150), pad_x=14, pad_y=6)
+
+    paste_text(img, 60, 100, data.get("title", "📱 实用APP"), 44, (255,255,255))
+    paste_text(img, 60, 165, data.get("subtitle", "出发前装好"), 20, (200,230,210))
+
+    items = data.get("items", [])[:8]
+    col_w = (W - 60*2 - 30) // 2
+    for i, item in enumerate(items):
+        col = i % 2
+        row = i // 2
+        x = 60 + col * (col_w + 30)
+        y = 240 + row * 140
+        draw_glass_card(img, x, y, col_w, 115, fill=(255,255,255), alpha=22, border=(255,255,255,80), radius=18)
+        paste_emoji(img, x+45, y+35, item.get("icon", "📱"), 32)
+        paste_text(img, x+85, y+15, item.get("name", "")[:16], 18, (255,255,255))
+        paste_text(img, x+85, y+42, item.get("desc", "")[:28], 12, (200,220,210))
+        if item.get("price"):
+            paste_text(img, x + col_w - 80, y + 75, item["price"], 14, (200,255,200))
+
+    if data.get("footer"):
+        paste_text(img, 60, H-60, data["footer"], 16, (200,255,200))
+
+    fname = f"{data['page_index']:02d}_apps.png"
+    img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
+    return img
+
 # ============= PAGE: BACK =============
 def render_back(data):
     img = Image.new('RGBA', (W, H), (0,0,0,255))
@@ -485,41 +551,36 @@ def render_trip_story(trip_data, outdir="trip_story"):
     global OUTDIR_DEFAULT
     os.makedirs(outdir, exist_ok=True)
     OUTDIR_DEFAULT = outdir
-    
-    pages = trip_data["pages"]  # list of page configs
-    total = len(pages) + 2  # +cover +back
-    # Adjust: cover and back are not in pages list
-    
-    # Build the actual page list
-    full_pages = [
-        ("cover", trip_data.get("cover", {})),
-    ]
-    for p in pages:
+
+    # PRO: build full page list with all sections
+    full_pages = [("cover", trip_data.get("cover", {}))]
+    for p in trip_data["pages"]:
         full_pages.append(("page", p))
+    SECTION_ORDER = ["essentials", "cost", "souvenirs", "apps"]
+    for key in SECTION_ORDER:
+        if key in trip_data:
+            full_pages.append((key, trip_data[key]))
     full_pages.append(("back", trip_data.get("back", {})))
-    
-    # Render all
+
+    render_map = {
+        "cover": render_cover, "page": render_day,
+        "essentials": render_essentials, "cost": render_cost,
+        "souvenirs": render_souvenirs, "apps": render_apps,
+        "back": render_back,
+    }
+
+    total = len(full_pages)
     for i, (kind, page) in enumerate(full_pages):
-        if kind == "cover":
-            page["page_index"] = 1
-            page["total_pages"] = len(full_pages)
-            render_cover(page)
-        elif kind == "back":
-            page["page_index"] = len(full_pages)
-            page["total_pages"] = len(full_pages)
-            render_back(page)
-        else:
-            page["page_index"] = i + 1
-            page["total_pages"] = len(full_pages)
-            render_day(page)
-        print(f"  ✅ {i+1}/{len(full_pages)} 渲染完成")
-    
-    print(f"\n全部 {len(full_pages)} 页已输出到 {outdir}/")
+        page["page_index"] = i + 1
+        page["total_pages"] = total
+        render_map[kind](page)
+        print(f"  ✅ {i+1}/{total} 渲染完成 ({kind})")
+
+    print(f"\n全部 {total} 页已输出到 {outdir}/")
     print(f"文件列表:")
     for f in sorted(os.listdir(outdir)):
         sz = os.path.getsize(f"{outdir}/{f}") // 1024
         print(f"  {f} ({sz} KB)")
-
 
 # ============= CLI ENTRY =============
 if __name__ == "__main__":

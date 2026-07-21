@@ -289,40 +289,109 @@ def render_essentials(data):
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
 
 # ---------- MAIN ----------
+
+# ---------- 手伴页(大字版) ----------
+def render_souvenirs(data):
+    img = Image.new('RGBA', (W, H), (0,0,0,255))
+    for y in range(H):
+        t = y / H
+        r = int(250 - 15*t); g = int(247 - 18*t); b = int(240 - 25*t)
+        ImageDraw.Draw(img).line([(0,y),(W,y)], fill=(r,g,b,255))
+    paste_text(img, 100, 100, data.get("title", "🎁 回程必带"), 80, COLOR_ACCENT, "bold")
+    paste_text(img, 100, 200, data.get("subtitle", ""), 36, COLOR_TEXT_SOFT, "regular")
+    d = ImageDraw.Draw(img)
+    d.line([(100, 270), (W-100, 270)], fill=COLOR_LINE, width=3)
+    items = data.get("items", [])[:6]
+    cur_y = 320
+    for i, item in enumerate(items):
+        col = i % 2; row = i // 2
+        x = 100 + col * 460
+        y = cur_y + row * 120
+        paste_text(img, x+40, y, item.get("name", ""), 36, COLOR_TEXT, "bold")
+        paste_text(img, x+40, y+50, item.get("desc", ""), 26, COLOR_TEXT_SOFT, "regular")
+        if item.get("price"):
+            paste_text(img, x+40, y+80, item["price"], 28, COLOR_ACCENT, "bold")
+    fname = f"{data['page_index']:02d}_souvenirs.png"
+    img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
+
+# ---------- APP页(大字版) ----------
+def render_apps(data):
+    img = Image.new('RGBA', (W, H), (0,0,0,255))
+    for y in range(H):
+        t = y / H
+        r = int(250 - 15*t); g = int(247 - 18*t); b = int(240 - 25*t)
+        ImageDraw.Draw(img).line([(0,y),(W,y)], fill=(r,g,b,255))
+    paste_text(img, 100, 100, data.get("title", "📱 实用APP"), 80, COLOR_ACCENT, "bold")
+    paste_text(img, 100, 200, data.get("subtitle", "出发前装好"), 36, COLOR_TEXT_SOFT, "regular")
+    d = ImageDraw.Draw(img)
+    d.line([(100, 270), (W-100, 270)], fill=COLOR_LINE, width=3)
+    items = data.get("items", [])[:8]
+    cur_y = 320
+    for i, item in enumerate(items):
+        col = i % 2; row = i // 2
+        x = 100 + col * 460
+        y = cur_y + row * 100
+        paste_text(img, x+40, y, item.get("name", ""), 36, COLOR_TEXT, "bold")
+        paste_text(img, x+40, y+50, item.get("desc", ""), 26, COLOR_TEXT_SOFT, "regular")
+    fname = f"{data['page_index']:02d}_apps.png"
+    img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
+
 def render_trip_elder(trip, outdir="trip_elder"):
     global OUTDIR_DEFAULT
     os.makedirs(outdir, exist_ok=True)
     OUTDIR_DEFAULT = outdir
 
-    print(f"开始生成老人大字版到 {outdir}/")
+    pages = trip.get("pages", [])
+    extra = sum(1 for k in ["essentials","cost","souvenirs","apps","back"] if k in trip) + 1  # +cover
+    total_pages = len(pages) + extra
+
+    print(f"开始生成老人大字版 PRO 到 {outdir}/")
     print("="*50)
 
+    page_idx = 1
     # 封面
     cover = trip.get("cover", {})
-    cover["page_index"] = 1
-    cover["total_pages"] = len(trip.get("pages", [])) + 2
-    render_cover(cover)
-    print(f"  ✅ 01_cover.png (封面)")
+    cover["page_index"] = page_idx; cover["total_pages"] = total_pages
+    render_cover(cover); page_idx += 1
+    print(f"  ✅ {cover['page_index']:02d}_cover.png (封面)")
 
     # 每天
-    for i, page in enumerate(trip.get("pages", [])):
-        page["page_index"] = i + 2
-        page["total_pages"] = len(trip.get("pages", [])) + 2
+    for i, page in enumerate(pages):
+        page["page_index"] = page_idx; page["total_pages"] = total_pages
         render_day(page)
-        print(f"  ✅ {i+2:02d}_day{page['day']}.png (Day {page['day']}: {page['day_title']})")
-
-    # 应急联系
-    if "back" in trip:
-        render_emergency(trip["back"])
-        print(f"  ✅ 08_emergency.png (应急联系)")
+        print(f"  ✅ {page_idx:02d}_day{page['day']}.png (Day {page['day']}: {page['day_title']})")
+        page_idx += 1
 
     # 必备
     if "essentials" in trip:
-        render_essentials(trip["essentials"])
-        print(f"  ✅ 07_essentials.png (必备清单)")
+        d = trip["essentials"]
+        d["page_index"] = page_idx; d["total_pages"] = total_pages
+        render_essentials(d); page_idx += 1
+        print(f"  ✅ {d['page_index']:02d}_essentials.png (必备清单)")
+
+    # 手伴
+    if "souvenirs" in trip:
+        d = trip["souvenirs"]
+        d["page_index"] = page_idx; d["total_pages"] = total_pages
+        render_souvenirs(d); page_idx += 1
+        print(f"  ✅ {d['page_index']:02d}_souvenirs.png (回程手伴)")
+
+    # APP
+    if "apps" in trip:
+        d = trip["apps"]
+        d["page_index"] = page_idx; d["total_pages"] = total_pages
+        render_apps(d); page_idx += 1
+        print(f"  ✅ {d['page_index']:02d}_apps.png (实用APP)")
+
+    # 应急
+    if "back" in trip:
+        d = trip["back"]
+        d["page_index"] = page_idx; d["total_pages"] = total_pages
+        render_emergency(d); page_idx += 1
+        print(f"  ✅ {d['page_index']:02d}_emergency.png (应急联系)")
 
     print("="*50)
-    print(f"全部完成! {len(os.listdir(outdir))} 个文件已输出到 {outdir}/")
+    print(f"全部完成! {page_idx-1} 个文件已输出到 {outdir}/")
 
 
 if __name__ == "__main__":

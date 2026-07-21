@@ -65,9 +65,26 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="统一 trip-planner 调度器")
     parser.add_argument("trip_json", help="trip JSON 路径")
     parser.add_argument("outdir", help="输出目录")
-    parser.add_argument("--mode", choices=["story", "elder", "long", "auto"], default="auto",
-                        help="输出模式(默认 auto = 自动从用户原文判断)")
+    parser.add_argument("--mode", choices=["story", "elder", "long", "pro", "auto"], default="pro",
+                        help="输出模式(默认 pro = 全部三种都出)")
     parser.add_argument("--prompt", default="", help="用户原文(触发自动判断)")
     args = parser.parse_args()
     
-    render(args.trip_json, args.outdir, args.mode, args.prompt)
+
+    if args.mode == "pro":
+        # PRO mode: render all 3 outputs into the same directory
+        for m in ["story", "elder", "long"]:
+            print(f"\n{'='*50}")
+            print(f"  [{m.upper()}] 模式渲染中...")
+            print(f"{'='*50}")
+            render(args.trip_json, args.outdir, m, args.prompt)
+        # Show summary
+        print(f"\n{'='*50}")
+        print(f"  🎉 PRO 模式全部完成!")
+        print(f"  输出目录: {args.outdir}")
+        print(f"{'='*50}")
+        for f in sorted(os.listdir(args.outdir)):
+            sz = os.path.getsize(f"{args.outdir}/{f}") // 1024
+            print(f"  {f} ({sz} KB)")
+    else:
+        render(args.trip_json, args.outdir, args.mode, args.prompt)

@@ -1,7 +1,9 @@
 ---
 name: trip-planner
 license: MIT
-description: Plan complete trips with day-by-day timeline, per-step precautions, full essentials checklist (9 categories), cost breakdown, targeted question lists, and mobile-friendly output (long-screenshot, per-day story cards, .ics calendar). Triggers on "行程规划", "旅行计划", "trip plan", "travel itinerary", "攻略", "路线", "去 X 玩", "going to X", or any "规划 X 旅行" intent.
+description: >
+  触发词：旅行规划、trip planner、行程安排、day by day、旅游计划、旅行日程、travel plan。
+  Plan complete trips with day-by-day timeline, per-step precautions, full essentials checklist (9 categories), cost breakdown, targeted question lists, and mobile-friendly output (long-screenshot, per-day story cards, .ics calendar). Triggers on "行程规划", "旅行计划", "trip plan", "travel itinerary", "攻略", "路线", "去 X 玩", "going to X", or any "规划 X 旅行" intent. 触发词：行程规划、旅行计划、trip planner、day-by-day 行程。 Use when 用户要求做 day-by-day 的完整行程规划。
 metadata:
   homepage: internal://trip-planner
   applies_to: trip, travel, itinerary, vacation, business-trip, school-visit
@@ -215,3 +217,97 @@ trip-malaysia-2day/
 - v1.0 2026-07-19 由 IOPH→KL→SG 行程项目孵化
 - 触发语、必备清单、4 件套交付规则均来自该项目的 PROJECT_MEMORY.md
 - 后续:加打包/翻译/天气 API 等可选 sub-skill
+
+---
+
+## 11. PRO 模式（v2.0 新增）
+
+### 一句话
+
+> **只要输入目的地+天数，自动输出完整行程 Markdown + 3 版图片（玻璃拟态/大字版/长截图）**
+
+### 默认交付物（升级为 8 件套）
+
+| # | 交付物 | 形式 | 说明 |
+|---|---|---|---|
+| 1 | ✈️ **路线总览** | Markdown 段落 | 交通方式+耗时+费用一览 |
+| 2 | 📅 **多天行程表** | Markdown 表格 | 每天按时间线排列，含⚠️注意事项 |
+| 3 | 🖼️ **玻璃拟态 3:4 多页图** | 5-10 张 PNG | 小红书风，每页一卡片 |
+| 4 | 🖼️ **大字版多页图** | 5-10 张 PNG | 米白底大字，给爸妈看 |
+| 5 | 🖼️ **长截图** | 1 张 PNG | 1080×N 全行程一图流 |
+| 6 | 📋 **出行必备清单** | 9 大类 checkbox | 打包前对照 |
+| 7 | 🎁 **回程必带手伴** | Markdown 列表 | 当地特色伴手礼+参考价 |
+| 8 | 💰 **总预算表** | Markdown 表格 | 分类成本拆解 |
+| 9 | 🚨 **旅行应急卡** | Markdown 卡片 | 当地紧急电话+常见问题 |
+| 10 | 📱 **实用 APP 清单** | Markdown 列表 | 出发前装好 |
+
+### 用法
+
+```bash
+# PRO 模式（默认）：输出全部 3 种图片 + 完整 Markdown
+python3 scripts/render_trip.py trip.json outdir --mode pro
+
+# 单模式
+python3 scripts/render_trip.py trip.json outdir --mode story
+python3 scripts/render_trip.py trip.json outdir --mode elder --prompt "给爸妈看"
+python3 scripts/render_trip.py trip.json outdir --mode long
+```
+
+### 图片内容全览
+
+**Story 模式**页序（约 9-12 页）：
+```
+01_cover.png       — 封面（调色板+行程总览）
+02_day1.png        — Day 1 时间线
+03_day2.png        — Day 2 时间线
+...                — 更多天
+0N_essentials.png  — 出行必备清单（9 大类）
+0N_cost.png        — 成本拆解
+0N_souvenirs.png   — 回程必带手伴
+0N_apps.png        — 实用 APP
+0N_back.png        — 应急联系
+```
+
+**Elder 模式**页序（约 10-13 页）：
+```
+01_cover.png       — 大字封面
+02_day1.png        — Day 1
+03_day2.png        — Day 2
+...                — 更多天
+0N_essentials.png  — 必备清单
+0N_souvenirs.png   — 回程手伴
+0N_apps.png        — 实用APP
+0N_emergency.png   — 应急电话
+```
+
+### JSON 数据扩展
+
+PRO 版本新增 2 个 JSON 段落，需在 trip JSON 中包含：
+
+```json
+"souvenirs": {
+  "title": "🎁 回程必带",
+  "subtitle": "特色伴手礼推荐",
+  "items": [
+    {"icon": "🩹", "name": "泰式药膏", "desc": "Counterpain/青草膏",
+     "price": "RM 5-15"},
+    ...
+  ]
+},
+"apps": {
+  "title": "📱 实用APP",
+  "subtitle": "出发前装好",
+  "items": [
+    {"icon": "🚕", "name": "Grab", "desc": "泰国打车神器"},
+    ...
+  ]
+}
+```
+
+### 3 份拷贝同步
+
+| 目录 | 角色 | 同步方式 |
+|---|---|---|
+| `bethel-skills/trip-planner/` | 开发版本 | 直接修改 |
+| `trip-planner-skill/` | 本地安装版本 | rsync 从 bethel-skills |
+| `trip-planner-github/` | GitHub 发布 | commit + push |

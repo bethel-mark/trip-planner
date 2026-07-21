@@ -242,7 +242,7 @@ def render_emergency(data):
     # 底部提醒(居中,避开大数字)
     paste_text(img, (W-720)//2, H-100, "📱 长按此页可放大看 · 收藏到手机", 28, COLOR_TEXT_SOFT, "regular")
 
-    fname = "08_emergency.png"
+    fname = f"{data['page_index']:02d}_emergency.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
 
 # ---------- 必备清单页 ----------
@@ -285,7 +285,7 @@ def render_essentials(data):
             paste_text(img, x+40, iy, item[:16], 32, COLOR_TEXT, "regular")
             iy += 50
 
-    fname = "07_essentials.png"
+    fname = f"{data['page_index']:02d}_essentials.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
 
 # ---------- MAIN ----------

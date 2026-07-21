@@ -72,19 +72,25 @@ if __name__ == "__main__":
     
 
     if args.mode == "pro":
-        # PRO mode: render all 3 outputs into the same directory
-        for m in ["story", "elder", "long"]:
+        # PRO mode: render all 3 outputs into subdirectories
+        subdirs = {"story": "玻璃拟态", "elder": "大字版", "long": "长截图"}
+        all_files = []
+        for m, label in subdirs.items():
+            mdir = os.path.join(args.outdir, m)
+            os.makedirs(mdir, exist_ok=True)
             print(f"\n{'='*50}")
-            print(f"  [{m.upper()}] 模式渲染中...")
+            print(f"  [{label}] 渲染中...")
             print(f"{'='*50}")
-            render(args.trip_json, args.outdir, m, args.prompt)
-        # Show summary
+            render(args.trip_json, mdir, m, args.prompt)
+            for f in os.listdir(mdir):
+                sz = os.path.getsize(f"{mdir}/{f}") // 1024
+                all_files.append((m, label, f, sz))
+        # Summary
         print(f"\n{'='*50}")
-        print(f"  🎉 PRO 模式全部完成!")
-        print(f"  输出目录: {args.outdir}")
+        print(f"  🎉 PRO 模式全部完成!  输出目录: {args.outdir}")
         print(f"{'='*50}")
-        for f in sorted(os.listdir(args.outdir)):
-            sz = os.path.getsize(f"{args.outdir}/{f}") // 1024
-            print(f"  {f} ({sz} KB)")
+        for mode, label, fname, sz in all_files:
+            print(f"  [{label}] {fname} ({sz} KB)")
+        print(f"\n  共 {len(all_files)} 个文件")
     else:
         render(args.trip_json, args.outdir, args.mode, args.prompt)

@@ -333,47 +333,47 @@ def render_essentials(data):
     draw_background(img, "teal")
     glow(img, 200, 200, 250, (80,200,180), alpha=120, blur=90)
     glow(img, W-200, 600, 250, (200,80,200), alpha=100, blur=100)
-    
-    # Page number
+
     page_n = f"{data['page_index']:02d} / {data['total_pages']:02d}"
-    glass_card_for_text(img, page_n, 16, 30, left_x=W-130,
-                        fill=(255,255,255), alpha=40, border=(255,255,255,150),
-                        pad_x=14, pad_y=6)
-    
-    # Title
-    title = data.get("title", "🎒 出行必备")
-    paste_text(img, 60, 100, title, 44, (255,255,255))
-    paste_text(img, 60, 165, data.get("subtitle", "出发前 1 周对照打勾"), 20, (200,230,210))
-    
-    # Categories (compact 6 categories, 2 columns)
+    glass_card_for_text(img, page_n, 16, 30, left_x=W-130, fill=(255,255,255), alpha=40, border=(255,255,255,150), pad_x=14, pad_y=6)
+
+    paste_text(img, 60, 80, data.get("title", "🎒 出行必备"), 44, (255,255,255))
+    paste_text(img, 60, 135, data.get("subtitle", "出发前 1 周对照打勾"), 20, (200,230,210))
+
+    # Divider
+    d = ImageDraw.Draw(img)
+    d.line([(60, 175), (W-60, 175)], fill=(255,255,255,60), width=1)
+
+    # Categories (6 categories, 2 columns) - compact design to make room
     categories = data.get("categories", [])
-    cat_w = (W - 60*2 - 30) // 2
-    cat_h = 140
+    cat_w = (W - 60*2 - 24) // 2
+    cat_h = 165
     for i, cat in enumerate(categories[:6]):
-        col = i % 2
-        row = i // 2
-        x = 60 + col * (cat_w + 30)
-        y = 240 + row * (cat_h + 25)
-        # Glass card
-        draw_glass_card(img, x, y, cat_w, cat_h,
-                        fill=(255,255,255), alpha=18, border=(255,255,255,60), radius=18)
-        # Category header
-        paste_emoji(img, x+40, y+30, cat["icon"], 32)
-        paste_text(img, x+70, y+20, cat["name"], 18, (255,255,255))
-        # Items (compact)
-        iy = y + 60
-        for item in cat["items"][:4]:
+        col = i % 2; row = i // 2
+        x = 60 + col * (cat_w + 24)
+        y = 200 + row * (cat_h + 20)
+        draw_glass_card(img, x, y, cat_w, cat_h, fill=(255,255,255), alpha=18, border=(255,255,255,60), radius=18)
+        paste_emoji(img, x+35, y+28, cat["icon"], 28)
+        paste_text(img, x+65, y+18, cat["name"], 18, (255,255,255))
+        iy = y + 55
+        for item in cat["items"][:5]:
             ov = Image.new('RGBA', img.size, (0,0,0,0))
             od = ImageDraw.Draw(ov)
-            od.rectangle([x+18, iy+5, x+28, iy+15], outline=(200,220,210,200), width=2)
+            od.rectangle([x+15, iy+4, x+23, iy+12], outline=(200,220,210,200), width=2)
             img.alpha_composite(ov)
-            paste_text(img, x+38, iy-2, item[:22], 13, (220,230,210))
+            paste_text(img, x+32, iy-3, item[:24], 12, (220,230,210))
             iy += 18
-    
-    # Bottom warning
+
+    # Pre-departure timeline at bottom
+    cats_end = 200 + 3 * (cat_h + 20)
+    draw_glass_card(img, 60, cats_end, W-120, 75, fill=(100,220,200), alpha=40, border=(150,240,220,150), radius=18)
+    paste_text(img, 80, cats_end+10, "⏰ 打勾时间线", 18, (255,255,255))
+    timeline_text = "1周前:买SIM卡・订ETS票・换泰铢  |  1天前:打包行李・装APP  |  出发:检查护照"
+    paste_text(img, 80, cats_end+42, timeline_text, 14, (200,255,240))
+
     if data.get("footer"):
-        paste_text(img, 60, H-80, data["footer"], 18, (255,200,150))
-    
+        paste_text(img, 60, H-50, data["footer"], 16, (255,200,150))
+
     fname = f"{data['page_index']:02d}_essentials.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
     return img
@@ -384,55 +384,49 @@ def render_cost(data):
     draw_background(img, "warm")
     glow(img, 200, 250, 250, (255,160,80), alpha=120, blur=90)
     glow(img, W-200, 500, 280, (200,80,200), alpha=100, blur=100)
-    
-    # Page number
+
     page_n = f"{data['page_index']:02d} / {data['total_pages']:02d}"
-    glass_card_for_text(img, page_n, 16, 30, left_x=W-130,
-                        fill=(255,255,255), alpha=40, border=(255,255,255,150),
-                        pad_x=14, pad_y=6)
-    
-    # Title
-    paste_text(img, 60, 100, data.get("title", "💰 成本拆解"), 44, (255,255,255))
-    paste_text(img, 60, 165, data.get("subtitle", "两人总计"), 20, (255,220,180))
-    
+    glass_card_for_text(img, page_n, 16, 30, left_x=W-130, fill=(255,255,255), alpha=40, border=(255,255,255,150), pad_x=14, pad_y=6)
+
+    paste_text(img, 60, 80, data.get("title", "💰 成本拆解"), 44, (255,255,255))
+    paste_text(img, 60, 135, data.get("subtitle", ""), 20, (255,220,180))
+
     # Big total card
     total = data.get("total", "RM 0")
-    tw, th = measure_text(total, 80)
+    tw, th = measure_text(total, 70)
     total_card_w = W - 120
-    draw_glass_card(img, 60, 240, total_card_w, 180,
-                    fill=(255,180,80), alpha=80, border=(255,210,140,220), radius=24)
-    paste_text(img, 60 + (total_card_w - tw)//2, 270, total, 80, (255,255,255))
+    draw_glass_card(img, 60, 200, total_card_w, 155, fill=(255,180,80), alpha=80, border=(255,210,140,220), radius=24)
+    paste_text(img, 60 + (total_card_w - tw)//2, 220, total, 70, (255,255,255))
     if "per_person" in data:
-        pw, ph = measure_text(data["per_person"], 22)
-        paste_text(img, 60 + (total_card_w - pw)//2, 380, data["per_person"], 22, (255,255,255))
-    
-    # Cost breakdown (5 items, 2 columns)
-    items = data.get("items", [])[:6]
-    item_h = 100
+        pw, ph = measure_text(data["per_person"], 20)
+        paste_text(img, 60 + (total_card_w - pw)//2, 305, data["per_person"], 20, (255,255,255))
+
+    # Cost breakdown (6 items, 2 columns)
+    items = data.get("items", [])[:8]
     col_w = (W - 60*2 - 30) // 2
     for i, item in enumerate(items):
-        col = i % 2
-        row = i // 2
+        col = i % 2; row = i // 2
         x = 60 + col * (col_w + 30)
-        y = 470 + row * (item_h + 20)
-        draw_glass_card(img, x, y, col_w, item_h,
-                        fill=(255,255,255), alpha=20, border=(255,255,255,80), radius=18)
-        # Icon
-        paste_emoji(img, x+45, y+50, item.get("icon", "💵"), 32)
-        # Category name
-        paste_text(img, x+90, y+18, item.get("category", "")[:14], 16, (255,255,255))
-        # Description
-        paste_text(img, x+90, y+40, item.get("desc", "")[:22], 12, (220,210,200))
-        # Amount
+        y = 390 + row * 108
+        draw_glass_card(img, x, y, col_w, 90, fill=(255,255,255), alpha=20, border=(255,255,255,80), radius=18)
+        paste_emoji(img, x+40, y+28, item.get("icon", "💵"), 26)
+        paste_text(img, x+78, y+14, item.get("category", "")[:14], 16, (255,255,255))
+        paste_text(img, x+78, y+36, item.get("desc", "")[:24], 12, (220,210,200))
         amt = item.get("amount", "")
-        aw, ah = measure_text(amt, 22)
-        paste_text(img, x + col_w - aw - 20, y + item_h - 30, amt, 22, (255,255,200))
-    
-    # Footer tips
+        aw, ah = measure_text(amt, 20)
+        paste_text(img, x + col_w - aw - 15, y + 55, amt, 20, (255,255,200))
+
+    # Savings tips section
+    items_end = 390 + (len(items)+1)//2 * 108 + 30
+    tips_data = data.get("saving_tips", ["💡 住宿选Lee Garden附近可步行省打车费", "🍜 路边摊比商场便宜50% ・味道一样好"])
+    draw_glass_card(img, 60, items_end, W-120, 85, fill=(255,200,100), alpha=55, border=(255,220,150,180), radius=18)
+    paste_text(img, 80, items_end+12, "💰 省钱贴士", 18, (255,255,255))
+    for j, tip in enumerate(tips_data[:2]):
+        paste_text(img, 80, items_end + 40 + j*22, tip, 15, (255,255,230))
+
     if data.get("tip"):
-        tw, _ = measure_text(data["tip"], 16)
-        paste_text(img, (W-tw)//2, H-50, data["tip"], 16, (255,200,150))
-    
+        paste_text(img, 60, H-50, data["tip"], 16, (255,200,150))
+
     fname = f"{data['page_index']:02d}_cost.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
     return img
@@ -448,22 +442,33 @@ def render_souvenirs(data):
     page_n = f"{data['page_index']:02d} / {data['total_pages']:02d}"
     glass_card_for_text(img, page_n, 16, 30, left_x=W-130, fill=(255,255,255), alpha=40, border=(255,255,255,150), pad_x=14, pad_y=6)
 
-    paste_text(img, 60, 100, data.get("title", "🎁 回程必带"), 44, (255,255,255))
-    paste_text(img, 60, 165, data.get("subtitle", ""), 20, (255,220,180))
+    paste_text(img, 60, 80, data.get("title", "🎁 回程必带"), 44, (255,255,255))
+    paste_text(img, 60, 135, data.get("subtitle", ""), 20, (255,220,180))
+
+    # Divider line
+    d = ImageDraw.Draw(img)
+    d.line([(60, 175), (W-60, 175)], fill=(255,255,255,60), width=1)
 
     items = data.get("items", [])[:8]
     col_w = (W - 60*2 - 30) // 2
     for i, item in enumerate(items):
-        col = i % 2
-        row = i // 2
+        col = i % 2; row = i // 2
         x = 60 + col * (col_w + 30)
-        y = 240 + row * 165
-        draw_glass_card(img, x, y, col_w, 140, fill=(255,255,255), alpha=20, border=(255,255,255,80), radius=18)
-        paste_emoji(img, x+45, y+35, item.get("icon", "🎁"), 36)
-        paste_text(img, x+90, y+12, item.get("name", "")[:14], 18, (255,255,255))
-        paste_text(img, x+90, y+40, item.get("desc", "")[:22], 13, (210,200,190))
+        y = 210 + row * 130
+        draw_glass_card(img, x, y, col_w, 110, fill=(255,255,255), alpha=22, border=(255,255,255,80), radius=18)
+        paste_emoji(img, x+40, y+32, item.get("icon", "🎁"), 32)
+        paste_text(img, x+80, y+12, item.get("name", "")[:14], 18, (255,255,255))
+        paste_text(img, x+80, y+40, item.get("desc", "")[:26], 13, (210,200,190))
         price = item.get("price", "")
-        paste_text(img, x+90, y+60, price, 16, (255,200,100))
+        paste_text(img, x+80, y+62, price, 16, (255,200,100))
+
+    # Tips section
+    tips = data.get("tips", ["💡 Big C 满2000 THB可退税", "⚠️ 烟酒限额:200支+1L", "🏪 7-11最后补货机会"])
+    ty = 210 + min(len(items),8)//2 * 130 + 30
+    draw_glass_card(img, 60, ty, W-120, 90, fill=(255,200,100), alpha=60, border=(255,220,150,180), radius=18)
+    paste_text(img, 80, ty+12, "💡 购物贴士", 18, (255,255,255))
+    for j, t in enumerate(tips[:2]):
+        paste_text(img, 80, ty + 42 + j*24, t, 15, (255,255,230))
 
     fname = f"{data['page_index']:02d}_souvenirs.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)
@@ -479,25 +484,33 @@ def render_apps(data):
     page_n = f"{data['page_index']:02d} / {data['total_pages']:02d}"
     glass_card_for_text(img, page_n, 16, 30, left_x=W-130, fill=(255,255,255), alpha=40, border=(255,255,255,150), pad_x=14, pad_y=6)
 
-    paste_text(img, 60, 100, data.get("title", "📱 实用APP"), 44, (255,255,255))
-    paste_text(img, 60, 165, data.get("subtitle", "出发前装好"), 20, (200,230,210))
+    paste_text(img, 60, 80, data.get("title", "📱 实用APP"), 44, (255,255,255))
+    paste_text(img, 60, 135, data.get("subtitle", "出发前装好"), 20, (200,230,210))
+
+    # Divider
+    d = ImageDraw.Draw(img)
+    d.line([(60, 175), (W-60, 175)], fill=(255,255,255,60), width=1)
 
     items = data.get("items", [])[:8]
     col_w = (W - 60*2 - 30) // 2
     for i, item in enumerate(items):
-        col = i % 2
-        row = i // 2
+        col = i % 2; row = i // 2
         x = 60 + col * (col_w + 30)
-        y = 240 + row * 140
-        draw_glass_card(img, x, y, col_w, 115, fill=(255,255,255), alpha=22, border=(255,255,255,80), radius=18)
-        paste_emoji(img, x+45, y+35, item.get("icon", "📱"), 32)
-        paste_text(img, x+85, y+15, item.get("name", "")[:16], 18, (255,255,255))
-        paste_text(img, x+85, y+42, item.get("desc", "")[:28], 12, (200,220,210))
-        if item.get("price"):
-            paste_text(img, x + col_w - 80, y + 75, item["price"], 14, (200,255,200))
+        y = 210 + row * 115
+        draw_glass_card(img, x, y, col_w, 95, fill=(255,255,255), alpha=22, border=(255,255,255,80), radius=18)
+        paste_emoji(img, x+40, y+28, item.get("icon", "📱"), 28)
+        paste_text(img, x+80, y+14, item.get("name", "")[:16], 18, (255,255,255))
+        paste_text(img, x+80, y+40, item.get("desc", "")[:30], 12, (200,220,210))
+
+    # Installation guide section
+    apps_end_y = 210 + min(len(items),8)//2 * 115 + 40
+    draw_glass_card(img, 60, apps_end_y, W-120, 85, fill=(100,220,200), alpha=50, border=(150,240,220,180), radius=18)
+    paste_text(img, 80, apps_end_y+12, "📲 安装方式", 18, (255,255,255))
+    paste_text(img, 80, apps_end_y+38, "App Store / Play Store 搜索名称下载", 15, (200,255,240))
+    paste_text(img, 80, apps_end_y+58, "泰国 SIM 卡 7-11 有售 . RM 10-15/7天", 15, (200,255,240))
 
     if data.get("footer"):
-        paste_text(img, 60, H-60, data["footer"], 16, (200,255,200))
+        paste_text(img, 60, H-50, data["footer"], 16, (200,255,200))
 
     fname = f"{data['page_index']:02d}_apps.png"
     img.convert('RGB').save(f"{OUTDIR_DEFAULT}/{fname}", 'PNG', optimize=True)

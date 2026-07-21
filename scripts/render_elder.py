@@ -89,11 +89,11 @@ def render_emoji(emoji, size=120):
         return pil
     except: return None
 
-def paste_emoji(img, x, y, emoji, size=120):
+def paste_emoji(img, x, y, emoji, size=120, center=True):
     pil = render_emoji(emoji, size)
     if pil:
         px = int(x - pil.width/2)
-        py = int(y - pil.height)
+        py = int(y - pil.height / 2) if center else int(y - pil.height)
         img.alpha_composite(pil, (px, py))
 
 # ---------- Page 1: 封面(大字) ----------

@@ -80,10 +80,10 @@ def paste_text(img, x, y, text, font_size, fill_rgb=(255,255,255)):
     if pil:
         img.alpha_composite(pil, (int(x), int(y)))
 
-def paste_emoji(img, x, y, emoji, size=120):
+def paste_emoji(img, x, y, emoji, size=120, center=True):
     pil = render_emoji(emoji, size)
     px = int(x - pil.width / 2)
-    py = int(y - pil.height)
+    py = int(y - pil.height / 2) if center else int(y - pil.height)
     img.alpha_composite(pil, (px, py))
 
 # ---------- Background ----------
@@ -167,7 +167,7 @@ def draw_iso_platform(img, cx, cy, w=120, d=120, h=24,
 def icon_on_platform(img, cx, cy_top, emoji, size=110,
                      plat_w=140, plat_d=140, plat_h=22):
     draw_iso_platform(img, cx, cy_top+10, plat_w, plat_d, plat_h)
-    paste_emoji(img, cx, cy_top - 5, emoji, size)
+    paste_emoji(img, cx, cy_top + 10, emoji, size, center=False)
 
 # ---------- EVENT CARD (the new big unit) ----------
 def event_card(img, x, y, w, time, place, desc, precautions,
